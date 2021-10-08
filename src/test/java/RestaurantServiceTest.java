@@ -1,6 +1,9 @@
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,6 +21,10 @@ class RestaurantServiceTest {
         restaurant = service.addRestaurant("Amelie's cafe","Chennai",openingTime,closingTime);
         restaurant.addToMenu("Sweet corn soup",119);
         restaurant.addToMenu("Vegetable lasagne", 269);
+        restaurant.addToMenu("Chilly Chicken",309);
+        restaurant.addToMenu("Chilly Paneer", 169);
+        restaurant.addToMenu("Honey Chilly Potato", 100);
+        restaurant.addToMenu("Egg Role", 90);
     }
 
 
@@ -62,4 +69,61 @@ class RestaurantServiceTest {
         assertEquals(initialNumberOfRestaurants + 1,service.getRestaurants().size());
     }
     //<<<<<<<<<<<<<<<<<<<<ADMIN: ADDING & REMOVING RESTAURANTS>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    @Test
+    public void when_no_item_is_selected_the_order_total_will_give_zero() {
+        Restaurant restaurantSpy = Mockito.spy(restaurant);
+        Mockito.when(restaurantSpy.getSelectedItems()).thenReturn(new ArrayList<>());
+        double orderValue = restaurantSpy.getTotalOrderPrice();
+        assertEquals(orderValue, 0f);
+    }
+
+    @Test
+    public void when_3_items_are_selected_from_menu_from_starting_point_then_order_value_should_be_the_total_of_the_3_selected_items() {
+
+        Restaurant restaurantSpy = Mockito.spy(restaurant);
+
+        //Selecting first 3 items.
+        for (int i = 0; i < restaurantSpy.getMenu().size(); i++) {
+            if(i<3) {
+                restaurantSpy.getMenu().get(i).setSelected(true);
+            } else
+                break;
+        }
+        ArrayList<Item> selection = (ArrayList<Item>) restaurantSpy.getMenu().stream().filter(Item::isSelected).collect(Collectors.toList());
+        Mockito.when(restaurantSpy.getSelectedItems()).thenReturn(selection);
+        double orderValue = restaurantSpy.getTotalOrderPrice();
+        assertEquals(orderValue, 697f );
+    }
+
+    @Test
+    public void when_last_3_items_are_selected_from_menu_then_order_value_should_be_the_total_of_the_3_selected_items() {
+
+        Restaurant restaurantSpy = Mockito.spy(restaurant);
+
+        //Selecting last 3 items.
+        for (int i = restaurantSpy.getMenu().size(); i > restaurantSpy.getMenu().size() - 3 ; i--) {
+            restaurantSpy.getMenu().get(i-1).setSelected(true);
+        }
+        ArrayList<Item> selection = (ArrayList<Item>) restaurantSpy.getMenu().stream().filter(Item::isSelected).collect(Collectors.toList());
+        Mockito.when(restaurantSpy.getSelectedItems()).thenReturn(selection);
+        double orderValue = restaurantSpy.getTotalOrderPrice();
+        assertEquals(359f, orderValue );
+    }
+
+    @Test
+    public void when_all_items_are_selected_from_menu_then_order_value_should_be_the_total_of_all_items() {
+
+        Restaurant restaurantSpy = Mockito.spy(restaurant);
+
+        //Selecting first 3 items.
+        for (int i = 0; i < restaurantSpy.getMenu().size(); i++) {
+            restaurantSpy.getMenu().get(i).setSelected(true);
+        }
+        ArrayList<Item> selection = (ArrayList<Item>) restaurantSpy.getMenu().stream().filter(Item::isSelected).collect(Collectors.toList());
+        Mockito.when(restaurantSpy.getSelectedItems()).thenReturn(selection);
+        double orderValue = restaurantSpy.getTotalOrderPrice();
+        assertEquals(359 + 697, orderValue);
+    }
+
 }

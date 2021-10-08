@@ -2,13 +2,16 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalDouble;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 public class Restaurant {
     private final String name;
     private final String location;
     public LocalTime openingTime;
     public LocalTime closingTime;
-    private final List<Item> menu = new ArrayList<Item>();
+    private List<Item> menu = new ArrayList<Item>();
 
     public Restaurant(String name, String location, LocalTime openingTime, LocalTime closingTime) {
         this.name = name;
@@ -60,6 +63,18 @@ public class Restaurant {
 
     public String getName() {
         return name;
+    }
+
+    public ArrayList<Item> getSelectedItems() {
+        return (ArrayList<Item>) menu.stream().filter(Item::isSelected).collect(Collectors.toList());
+    }
+
+    public double getTotalOrderPrice() {
+        OptionalDouble totalPrice = getSelectedItems().stream().flatMapToDouble(item -> DoubleStream.of(item.getPrice())).reduce((sum, price) -> sum += price);
+        if(totalPrice.isPresent())
+            return totalPrice.getAsDouble();
+        else
+            return totalPrice.orElse(0f);
     }
 
 }
